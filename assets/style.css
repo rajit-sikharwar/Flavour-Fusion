@@ -452,6 +452,51 @@ header .navbar a:hover {
     padding: 1rem;
 }
 
+/* Existing styles... */
+
+.order .row form .inputBox select.food-select {
+    padding: 1rem;
+    margin: 1rem 0;
+    font-size: 1.7rem;
+    color: #333;
+    border: .1rem solid rgba(0, 0, 0, .3);
+    border-radius: .5rem;
+    width: 100%;
+}
+
+.order .row form .payment-method {
+    margin: 1.5rem 0;
+}
+
+.order .row form .payment-method h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.order .row form .payment-method label {
+    display: block;
+    margin: 0.8rem 0;
+    font-size: 1.6rem;
+    cursor: pointer;
+}
+
+.order .row form .payment-method input[type="radio"] {
+    margin-right: 1rem;
+}
+
+.order .row form input[type="datetime-local"] {
+    padding: 1rem;
+    margin: 1rem 0;
+    font-size: 1.7rem;
+    color: #333;
+    border: .1rem solid rgba(0, 0, 0, .3);
+    border-radius: .5rem;
+    width: 100%;
+}
+
+/* Keep your existing button styles */
+
 .footer {
     background-color: #f8f9fa;
     color: #333;
