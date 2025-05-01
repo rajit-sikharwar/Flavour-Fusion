@@ -402,26 +402,29 @@ header .navbar a:hover {
 }
 
 .order .row {
+    display: flex;
+    justify-content: center; /* This centers the form-container horizontally */
     padding: 2rem;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 1000px; /* Same as your original width */
     box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.1);
     background: #fff;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    padding: 1.5rem;
     border-radius: .5rem;
-    width: 1000px;
-    margin-left: 160px;
 }
 
 .order .row form {
-    flex: 1 1 50rem;
-    padding: 1rem;
+    width: 100%;
 }
 
 .order .row form .inputBox {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    /* gap: 1.5rem; Better than margin for spacing */
 }
 
 .order .row form .inputBox input,
@@ -433,21 +436,21 @@ header .navbar a:hover {
     text-transform: none;
     border: .1rem solid rgba(0, 0, 0, .3);
     border-radius: .5rem;
-    width: 100%; 
+    width: 100%;
 }
 
 .order .row form textarea {
     resize: none;
     height: 15rem;
 }
-.order .row form .btn0 {  
-    cursor: pointer; 
-    margin-left: 360px;
-    margin-top: 20px;
+
+.order .row form .btn0 {
+    cursor: pointer;
+    display: block; /* Makes the button a block element */
+    margin: 20px auto 0; /* Centers the button horizontally */
     width: 240px;
-
+    padding: 1rem;
 }
-
 
 .footer {
     background-color: #f8f9fa;

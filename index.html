@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasty Bites</title>
+    <title>Flavour Fusion</title>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
         integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./assets/style.css">
 </head>
 
 <body>
@@ -28,8 +28,8 @@
     </header>
     <section class="home" id="home">
         <div class="content">
-            <h3>Tasty Bites</h3>
-            <p>Welcome to Tasty Bites, where every meal is a culinary masterpiece delivered straight to your door.
+            <h3>Flavour Fusion</h3>
+            <p>Welcome to Flavour Fusion, where every meal is a culinary masterpiece delivered straight to your door.
                 Explore a world of flavors with our diverse menu, curated from the finest ingredients and prepared by
                 top chefs. Whether you're craving gourmet cuisine, comforting classics, or exotic dishes, SavorDelight
                 promises a dining experience that's always fresh, delicious, and convenient. Order now and indulge in
@@ -216,7 +216,7 @@
         </div>
     </section>
 
-<!--     <section class="steps">
+    <section class="steps">
 
         <div class="box">
             <img src="images/step-1.jpg" alt="">
@@ -234,7 +234,7 @@
             <img src="images/step-4.jpg" alt="">
             <h3>and finally, enjoy your food</h3>
         </div>
-    </section> -->
+    </section>
 
     <section class="gallery" id="gallery">
 
@@ -349,25 +349,26 @@
         </div>
     </section>
 
-    <setion class="order" id="order">
-
+    <section class="order" id="order">
         <h1 class="heading"><span>order</span> now </h1>
-
+        
         <div class="row">
-            <form action="mailto:vigneshgbecse@gmail.com">
-                <div class="inputBox">
-                    <input type="text" placeholder="Name"> <br>
-                    <input type="email" placeholder="E-mail">
-                </div>
-                <div class="inputBox">
-                    <input type="number" placeholder="Phone Number"> <br>
-                    <input type="text" placeholder="Food Name">
-                </div>
-                <textarea placeholder="Address" name="" id="" cols="30" rows="10"></textarea>
-                <input type="submit" value="order now" class="btn0">
-            </form>
+            <div class="form-container">
+                <form action="./assets/order-food.php" method="post" enctype="multipart/form-data" class="order-form">
+                    <div class="inputBox">
+                        <input type="text" placeholder="Name"> <br>
+                        <input type="email" placeholder="E-mail">
+                    </div>
+                    <div class="inputBox">
+                        <input type="number" placeholder="Phone Number"> <br>
+                        <input type="text" placeholder="Food Name">
+                    </div>
+                    <textarea placeholder="Address" name="" id="" cols="30" rows="10"></textarea>
+                    <input type="submit" value="order now" class="btn0">
+                </form>
+            </div>
         </div>
-    </setion>
+    </section>
 
     <section class="footer">
 
@@ -375,9 +376,9 @@
             <div class="footer-content">
                 <h3>Contact Us</h3>
                 <ul>
-                    <li>Email: vigneshgbecse@gmail.com</li>
-                    <li>Phone: +91 8525822546</li>
-                    <li>Address: 132/4, Santhiveerappapuram Street, Punjai Sangenthi, Trichy - 621711, Tamil Nadu</li>
+                    <li>Email: flavourfusion@gmail.com</li>
+                    <li>Phone: +91 90000-90000</li>
+                    <li>Address: GLA university, mathura, uttar pradesh</li>
                 </ul>
             </div>
             <div class="footer-content">
@@ -405,7 +406,7 @@
     
 
         <h1 class="credit">
-            created by <span><a href="https://vigneshgbe.neocities.org">Vignesh G</a></span> | all rights are reserved
+            created by <span><a href="">Rajit Sikharwar</a></span> | all rights are reserved
         </h1>
     </section>
 
@@ -415,6 +416,6 @@
         <img src="images/loader.gif" alt="">
     </div>
 
-    <script src="script.js"></script>
+    <script src="./assets/script.js"></script>
 </body>
 </html>
