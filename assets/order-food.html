@@ -6,264 +6,23 @@
     <title>Order Food | Flavour Fusion</title>
     <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- <link rel="stylesheet" href="./style.css"> -->
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .order-container {
-            display: flex;
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .form-section {
-            flex: 1;
-            padding: 30px;
-            border-right: 1px solid #eee;
-        }
-        
-        .payment-section {
-            width: 350px;
-            padding: 30px;
-            background: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .heading {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-        
-        .heading span {
-            color: #ff6b6b;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .payment-methods {
-            margin-top: 30px;
-        }
-        
-        .payment-title {
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-        
-        .payment-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid #ddd;
-        }
-        
-        .payment-option:hover {
-            border-color: #ff6b6b;
-        }
-        
-        .payment-option input {
-            width: auto;
-            margin-right: 15px;
-        }
-        
-        .payment-logo {
-            width: 40px;
-            margin-right: 15px;
-        }
-        
-        .payment-details {
-            flex: 1;
-        }
-        
-        .payment-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .payment-desc {
-            font-size: 14px;
-            color: #777;
-        }
-        
-        .btn-order {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
-        
-        .btn-order:hover {
-            background: #ff5252;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .form-row .input-group {
-            flex: 1;
-        }
-        
-        .input-group .phone-input-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .input-group .country-code {
-            display: flex;
-            align-items: center;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 0 10px;
-            height: 46px;
-        }
-
-        .input-group .country-code img {
-            width: 20px;
-            height: 14px;
-            margin-right: 8px;
-        }
-
-        .input-group .country-code span {
-            font-size: 16px;
-        }
-
-        .input-group input[type="tel"] {
-            flex: 1;
-            padding-left: 12px;
-        }
-        
-        /* Food selection styles */
-        .food-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .food-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .food-item:hover {
-            border-color: #ff6b6b;
-        }
-        
-        .food-item.selected {
-            background-color: #ffebee;
-            border-color: #ff6b6b;
-        }
-        
-        .food-item input {
-            width: auto;
-            margin-right: 10px;
-        }
-        
-        /* Order summary styles */
-        .order-summary {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #eee;
-        }
-        
-        .order-summary h3 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        
-        .selected-items {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-        
-        .selected-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
-        }
-        
-        .total-amount {
-            font-weight: bold;
-            font-size: 18px;
-            text-align: right;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        
-        .no-items {
-            color: #777;
-            text-align: center;
-            padding: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+        integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
+    <link rel="stylesheet" href="./order-food.css">
 </head>
 <body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo"><i class="fas fa-utensils"></i>Flavour Fusion</a>
+        <nav class="navbar">
+            <a href="/">home</a>
+            <a href="../index.html#speciality">our's special</a>
+            <a href="../index.html#popular">popular foods</a>
+            <a href="../index.html#gallery">gallery</a>
+            <a href="../index.html#review">customer reviews</a>
+        </nav>
+    </header>
+
     <section class="order" id="order">
         <div class="order-container">
             <!-- Left Side - Order Form -->
@@ -417,6 +176,44 @@
                 
                 <button type="button" class="btn-order" onclick="placeOrder()">Place Order Now</button>
             </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> flavourfusion@gmail.com</li>
+                    <li><i class="fas fa-phone"></i> +91 90000-90000</li>
+                    <li><i class="fas fa-map-marker-alt"></i> GLA University, Mathura, Uttar Pradesh</li>
+                </ul>
+            </div>
+            
+            <div class="footer-content">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
+                    <li><a href="#speciality"><i class="fas fa-chevron-right"></i> Our's Special</a></li>
+                    <li><a href="#popular"><i class="fas fa-chevron-right"></i> Popular Foods</a></li>
+                    <li><a href="#review"><i class="fas fa-chevron-right"></i> Customer Reviews</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-content">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="credit">
+            Created by <span>Rajit Sikharwar</span> | All Rights Reserved
         </div>
     </section>
 
