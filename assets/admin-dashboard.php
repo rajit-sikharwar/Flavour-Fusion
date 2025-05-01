@@ -21,13 +21,17 @@ try {
     die("ERROR: Could not connect. " . $e->getMessage());
 }
 
-// Get all orders with their items
+// Get statistics
+$total_orders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+$total_earnings = $pdo->query("SELECT SUM(total_amount) FROM orders")->fetchColumn();
+$pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn();
+$delivered_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn();
+
+// Get all orders
 $stmt = $pdo->query("
-    SELECT o.*, GROUP_CONCAT(oi.item_name SEPARATOR ', ') AS items
-    FROM orders o
-    LEFT JOIN order_items oi ON o.id = oi.order_id
-    GROUP BY o.id
-    ORDER BY o.order_date DESC
+    SELECT *
+    FROM orders
+    ORDER BY order_date DESC
 ");
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -49,6 +53,15 @@ if (isset($_GET['logout'])) {
     header("Location: admin-login.php");
     exit;
 }
+
+// Function to extract ordered items from instructions
+function getOrderedItems($instructions) {
+    $pattern = '/Selected Items: (.*)/';
+    if (preg_match($pattern, $instructions, $matches)) {
+        return $matches[1];
+    }
+    return 'Items not specified';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,203 +69,631 @@ if (isset($_GET['logout'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Flavour Fusion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #e67e22;
+            --primary-dark: #d35400;
+            --secondary: #2c3e50;
+            --light: #f9f9f9;
+            --dark: #333;
+            --gray: #777;
+            --light-gray: #eee;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --white: #fff;
+            --sidebar-width: 250px;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            box-sizing: border-box;
         }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--secondary);
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: var(--white);
+            text-decoration: none;
+            transition: all 0.3s;
+            opacity: 0.8;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(0, 0, 0, 0.2);
+            opacity: 1;
+        }
+        
+        .sidebar-menu a i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            padding: 1.5rem;
+        }
+        
         .header {
-            background: #e67e22;
-            color: white;
-            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
         }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
+        
+        .header h1 {
+            font-size: 1.8rem;
+            color: var(--secondary);
         }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        
+        .user-profile .logout-btn {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+        
+        .user-profile .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        /* Stats Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .stats-icon.primary {
+            background: rgba(230, 126, 34, 0.1);
+            color: var(--primary);
+        }
+        
+        .stats-icon.success {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success);
+        }
+        
+        .stats-icon.warning {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning);
+        }
+        
+        .stats-icon.info {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .stats-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .stats-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        /* Orders Section */
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
         .order-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            padding: 20px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
+        
         .order-header {
             display: flex;
             justify-content: space-between;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid var(--light-gray);
         }
+        
         .order-id {
-            font-weight: bold;
-            color: #e67e22;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
+        
         .order-date {
-            color: #777;
+            color: var(--gray);
+            font-size: 0.9rem;
         }
+        
         .order-status {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 14px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
+        
         .status-pending {
             background: #fff3cd;
             color: #856404;
         }
+        
         .status-preparing {
             background: #cce5ff;
             color: #004085;
         }
+        
         .status-on-the-way {
             background: #fff3cd;
             color: #856404;
         }
+        
         .status-delivered {
             background: #d4edda;
             color: #155724;
         }
+        
         .status-cancelled {
             background: #f8d7da;
             color: #721c24;
         }
-        .order-details {
+        
+        .order-body {
+            padding: 1.5rem;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
+        
+        .order-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-subtitle i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+        
         .detail-group {
-            margin-bottom: 15px;
+            display: flex;
+            margin-bottom: 0.8rem;
         }
+        
         .detail-label {
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--secondary);
+            min-width: 120px;
         }
-        .order-items {
-            margin-top: 15px;
+        
+        .detail-value {
+            color: var(--dark);
         }
+        
+        .items-list {
+            list-style: none;
+        }
+        
+        .items-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .items-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .order-actions {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-total {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .order-total span {
+            color: var(--primary);
+        }
+        
         .update-form {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            align-items: center;
         }
-        select, button {
-            padding: 8px 12px;
+        
+        .update-form select {
+            padding: 0.5rem;
+            border: 1px solid var(--light-gray);
             border-radius: 4px;
+            margin-right: 0.5rem;
         }
-        select {
-            border: 1px solid #ddd;
-        }
-        button {
-            background: #e67e22;
-            color: white;
+        
+        .update-form button {
+            background: var(--primary);
+            color: var(--white);
             border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background 0.3s;
         }
-        button:hover {
-            background: #d35400;
+        
+        .update-form button:hover {
+            background: var(--primary-dark);
         }
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                overflow: hidden;
+            }
+            
+            .sidebar-header h3, 
+            .sidebar-header p,
+            .sidebar-menu a span {
+                display: none;
+            }
+            
+            .sidebar-menu a {
+                justify-content: center;
+            }
+            
+            .sidebar-menu a i {
+                margin-right: 0;
+                font-size: 1.2rem;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+                width: calc(100% - 80px);
+            }
         }
-        .logout-btn:hover {
-            background: #c82333;
+        
+        @media (max-width: 768px) {
+            .order-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .order-status {
+                margin-top: 0.5rem;
+            }
+            
+            .order-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .update-form {
+                margin-top: 1rem;
+                width: 100%;
+            }
+            
+            .update-form select {
+                flex: 1;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Flavour Fusion - Admin Dashboard</h1>
-        <div>
-            Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?>!
-            <a href="?logout=1" class="logout-btn">Logout</a>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://via.placeholder.com/150" alt="Admin Profile">
+            <div>
+                <h3><?php echo htmlspecialchars($_SESSION['admin_name']); ?></h3>
+                <p>Administrator</p>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="admin-dashboard.php" class="active">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="admin-orders.php">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Orders</span>
+            </a>
+            <a href="admin-menu.php">
+                <i class="fas fa-utensils"></i>
+                <span>Menu Items</span>
+            </a>
+            <a href="admin-customers.php">
+                <i class="fas fa-users"></i>
+                <span>Customers</span>
+            </a>
+            <a href="admin-reports.php">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </a>
+            <a href="admin-profile.php">
+                <i class="fas fa-user-cog"></i>
+                <span>Profile Settings</span>
+            </a>
+            <a href="?logout=1">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
         </div>
     </div>
-    
-    <div class="container">
-        <h2>Recent Orders</h2>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard Overview</h1>
+            <div class="user-profile">
+                <img src="https://via.placeholder.com/150" alt="User Profile">
+                <button class="logout-btn">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-cards">
+            <div class="stats-card">
+                <div class="stats-icon primary">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($total_orders); ?></h3>
+                    <p>Total Orders</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon success">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="stats-info">
+                    <h3>₹<?php echo number_format($total_earnings, 2); ?></h3>
+                    <p>Total Earnings</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($pending_orders); ?></h3>
+                    <p>Pending Orders</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon info">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($delivered_orders); ?></h3>
+                    <p>Delivered Orders</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Orders Section -->
+        <h2 class="section-title">Recent Orders</h2>
         
         <?php foreach ($orders as $order): ?>
             <div class="order-card">
                 <div class="order-header">
                     <div>
-                        <span class="order-id">Order #<?php echo $order['id']; ?></span>
-                        <span class="order-date"><?php echo date('M j, Y g:i A', strtotime($order['order_date'])); ?></span>
+                        <div class="order-id">Order #<?php echo $order['id']; ?></div>
+                        <div class="order-date"><?php echo date('M j, Y g:i A', strtotime($order['order_date'])); ?></div>
                     </div>
                     <div class="order-status status-<?php echo str_replace(' ', '-', strtolower($order['status'])); ?>">
                         <?php echo ucfirst($order['status']); ?>
                     </div>
                 </div>
                 
-                <div class="order-details">
-                    <div>
+                <div class="order-body">
+                    <div class="order-section">
+                        <h3 class="section-subtitle"><i class="fas fa-user"></i> Customer Details</h3>
                         <div class="detail-group">
-                            <div class="detail-label">Customer</div>
-                            <div><?php echo htmlspecialchars($order['name']); ?></div>
+                            <div class="detail-label">Name:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['name']); ?></div>
                         </div>
                         <div class="detail-group">
-                            <div class="detail-label">Contact</div>
-                            <div><?php echo htmlspecialchars($order['phone']); ?> / <?php echo htmlspecialchars($order['alt_phone']); ?></div>
+                            <div class="detail-label">Email:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['email']); ?></div>
                         </div>
                         <div class="detail-group">
-                            <div class="detail-label">Email</div>
-                            <div><?php echo htmlspecialchars($order['email']); ?></div>
+                            <div class="detail-label">Phone:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['phone']); ?></div>
                         </div>
                     </div>
                     
-                    <div>
+                    <div class="order-section">
+                        <h3 class="section-subtitle"><i class="fas fa-truck"></i> Delivery Details</h3>
                         <div class="detail-group">
-                            <div class="detail-label">Delivery Address</div>
-                            <div><?php echo nl2br(htmlspecialchars($order['address'])); ?></div>
-                            <div><?php echo htmlspecialchars($order['city'] . ', ' . $order['state'] . ' - ' . $order['postal_code']); ?></div>
-                            <div>Landmark: <?php echo htmlspecialchars($order['landmark']); ?></div>
+                            <div class="detail-label">Address:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['address']); ?></div>
                         </div>
                         <div class="detail-group">
-                            <div class="detail-label">Delivery Time</div>
-                            <div><?php echo date('M j, Y g:i A', strtotime($order['delivery_time'])); ?></div>
+                            <div class="detail-label">City/State:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['city'] . ', ' . $order['state']); ?></div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-label">Landmark:</div>
+                            <div class="detail-value"><?php echo htmlspecialchars($order['landmark']); ?></div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-label">Delivery Time:</div>
+                            <div class="detail-value"><?php echo date('M j, Y g:i A', strtotime($order['delivery_time'])); ?></div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-section">
+                        <h3 class="section-subtitle"><i class="fas fa-list"></i> Order Summary</h3>
+                        <ul class="items-list">
+                            <?php 
+                            $items = explode(', ', getOrderedItems($order['instructions']));
+                            foreach ($items as $item): 
+                                if (!empty(trim($item))): ?>
+                                    <li><?php echo htmlspecialchars(trim($item)); ?></li>
+                                <?php endif;
+                            endforeach; ?>
+                        </ul>
+                    </div>
+                    
+                    <div class="order-section">
+                        <h3 class="section-subtitle"><i class="fas fa-comment"></i> Special Instructions</h3>
+                        <div class="detail-value">
+                            <?php 
+                            $instructions = preg_replace('/Selected Items:.*/', '', $order['instructions']);
+                            echo !empty(trim($instructions)) ? nl2br(htmlspecialchars(trim($instructions))) : 'None'; 
+                            ?>
                         </div>
                     </div>
                 </div>
                 
-                <div class="order-items">
-                    <div class="detail-label">Items Ordered</div>
-                    <div><?php echo htmlspecialchars($order['items']); ?></div>
+                <div class="order-actions">
+                    <div class="order-total">Total: <span>₹<?php echo number_format($order['total_amount'], 2); ?></span></div>
+                    <form method="post" class="update-form">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <select name="status" required>
+                            <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                            <option value="preparing" <?php echo ($order['status'] == 'preparing') ? 'selected' : ''; ?>>Preparing</option>
+                            <option value="on the way" <?php echo ($order['status'] == 'on the way') ? 'selected' : ''; ?>>On the way</option>
+                            <option value="delivered" <?php echo ($order['status'] == 'delivered') ? 'selected' : ''; ?>>Delivered</option>
+                            <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                        </select>
+                        <button type="submit" name="update_status">Update Status</button>
+                    </form>
                 </div>
-                
-                <div class="detail-group">
-                    <div class="detail-label">Special Instructions</div>
-                    <div><?php echo !empty($order['instructions']) ? nl2br(htmlspecialchars($order['instructions'])) : 'None'; ?></div>
-                </div>
-                
-                <div class="detail-group">
-                    <div class="detail-label">Total Amount</div>
-                    <div>₹<?php echo number_format($order['total_amount'], 2); ?></div>
-                </div>
-                
-                <form method="post" class="update-form">
-                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                    <select name="status" required>
-                        <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                        <option value="preparing" <?php echo ($order['status'] == 'preparing') ? 'selected' : ''; ?>>Preparing</option>
-                        <option value="on the way" <?php echo ($order['status'] == 'on the way') ? 'selected' : ''; ?>>On the way</option>
-                        <option value="delivered" <?php echo ($order['status'] == 'delivered') ? 'selected' : ''; ?>>Delivered</option>
-                        <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                    </select>
-                    <button type="submit" name="update_status">Update Status</button>
-                </form>
             </div>
         <?php endforeach; ?>
     </div>

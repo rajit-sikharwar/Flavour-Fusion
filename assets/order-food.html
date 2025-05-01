@@ -15,11 +15,13 @@
     <header>
         <a href="#" class="logo"><i class="fas fa-utensils"></i>Flavour Fusion</a>
         <nav class="navbar">
-            <a href="/">home</a>
-            <a href="../index.html#speciality">our's special</a>
-            <a href="../index.html#popular">popular foods</a>
+            <a href="../index.html">home</a>
+            <a href="./menu.html">menu</a>
+            <a href="../index.html#speciality">special</a>
+            <a href="../index.html#popular">popular</a>
             <a href="../index.html#gallery">gallery</a>
-            <a href="../index.html#review">customer reviews</a>
+            <a href="../index.html#review">reviews</a>
+            <a href="./order-track.php">Track Order</a>
         </nav>
     </header>
 
@@ -374,118 +376,128 @@
         }
         
         function placeOrder() {
-            // Validate form
-            const form = document.getElementById('orderForm');
-            const selectedItems = Array.from(document.querySelectorAll('.food-item input[type="checkbox"]:checked'));
-            const termsChecked = document.getElementById('terms').checked;
-            
-            if (!form.checkValidity()) {
-                Swal.fire({
-                    title: 'Oops...',
-                    text: 'Please fill in all required fields!',
-                    icon: 'error'
-                });
-                return;
-            }
-            
-            if (selectedItems.length === 0) {
-                Swal.fire({
-                    title: 'Oops...',
-                    text: 'Please select at least one food item!',
-                    icon: 'error'
-                });
-                return;
-            }
-            
-            if (!termsChecked) {
-                Swal.fire({
-                    title: 'Terms & Conditions',
-                    text: 'Please agree to the Terms & Conditions to proceed',
-                    icon: 'error'
-                });
-                return;
-            }
-            
-            // Get order details for confirmation
-            const orderDetails = selectedItems.map(item => {
-                return `${item.value} (₹${item.dataset.price})`;
-            }).join('\n');
-            
-            const deliveryType = document.getElementById('delivery_type').value;
-            const deliveryText = deliveryType === 'express' ? 'Express Delivery (+₹50)' : 'Normal Delivery';
-            
-            const foodTotal = selectedItems.reduce((sum, item) => sum + parseFloat(item.dataset.price), 0);
-            const deliveryCharge = deliveryType === 'express' ? 50 : 0;
-            const grandTotal = foodTotal + deliveryCharge;
-            
-            // Show order confirmation
+        // Validate form
+        const form = document.getElementById('orderForm');
+        const selectedItems = Array.from(document.querySelectorAll('.food-item input[type="checkbox"]:checked'));
+        const termsChecked = document.getElementById('terms').checked;
+        
+        if (!form.checkValidity()) {
             Swal.fire({
-                title: 'Confirm Your Order',
-                html: `
-                    <strong>Selected Items:</strong><br>${orderDetails.replace(/\n/g, '<br>')}<br><br>
-                    <strong>Delivery Type:</strong> ${deliveryText}<br>
-                    <strong>Food Total:</strong> ₹${foodTotal.toFixed(2)}<br>
-                    <strong>Delivery Charge:</strong> ₹${deliveryCharge.toFixed(2)}<br>
-                    <strong>Total Amount:</strong> ₹${grandTotal.toFixed(2)}<br><br>
-                    <strong>Delivery Address:</strong><br>
-                    ${document.getElementById('address').value}<br>
-                    ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('postal_code').value}<br>
-                    Landmark: ${document.getElementById('landmark').value}
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Confirm Order',
-                cancelButtonText: 'Cancel',
-                scrollbarPadding: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // If confirmed, show success message
-                    Swal.fire({
-                        title: 'Order Placed!',
-                        html: `
-                            <p>Your order has been placed successfully!</p>
-                            <p>Estimated delivery time: ${getDeliveryTime()}</p>
-                            <p>Order ID: #${Math.floor(100000 + Math.random() * 900000)}</p>
-                        `,
-                        icon: 'success',
-                        confirmButtonText: 'Great!'
-                    }).then(() => {
-                        // Reset form after successful order
-                        form.reset();
-                        document.querySelector('input[name="payment"][value="cash"]').checked = true;
-                        // Clear selected items
-                        document.querySelectorAll('.food-item input[type="checkbox"]').forEach(checkbox => {
-                            checkbox.checked = false;
-                        });
-                        document.getElementById('terms').checked = false;
-                        updateOrderSummary();
-                    });
-                }
+                title: 'Oops...',
+                text: 'Please fill in all required fields!',
+                icon: 'error'
             });
+            return;
         }
         
-        function getDeliveryTime() {
-            const deliveryType = document.getElementById('delivery_type').value;
-            const deliveryTime = document.getElementById('delivery_time').value;
-            
-            if (deliveryTime) {
-                const deliveryDate = new Date(deliveryTime);
-                const now = new Date();
-                
-                // If delivery time is in the future
-                if (deliveryDate > now) {
-                    const options = { hour: '2-digit', minute: '2-digit' };
-                    return `Today by ${deliveryDate.toLocaleTimeString('en-IN', options)}`;
-                }
-            }
-            
-            // Default estimate based on delivery type
-            if (deliveryType === 'express') {
-                return 'Within 30-45 minutes';
-            } else {
-                return 'Within 60-90 minutes';
-            }
+        if (selectedItems.length === 0) {
+            Swal.fire({
+                title: 'Oops...',
+                text: 'Please select at least one food item!',
+                icon: 'error'
+            });
+            return;
         }
+        
+        if (!termsChecked) {
+            Swal.fire({
+                title: 'Terms & Conditions',
+                text: 'Please agree to the Terms & Conditions to proceed',
+                icon: 'error'
+            });
+            return;
+        }
+        
+        // Get order details for confirmation
+        const orderDetails = selectedItems.map(item => {
+            return `${item.value} (₹${item.dataset.price})`;
+        }).join('\n');
+        
+        const deliveryType = document.getElementById('delivery_type').value;
+        const deliveryText = deliveryType === 'express' ? 'Express Delivery (+₹50)' : 'Normal Delivery';
+        
+        const foodTotal = selectedItems.reduce((sum, item) => sum + parseFloat(item.dataset.price), 0);
+        const deliveryCharge = deliveryType === 'express' ? 50 : 0;
+        const grandTotal = foodTotal + deliveryCharge;
+        
+        // Show order confirmation
+        Swal.fire({
+            title: 'Confirm Your Order',
+            html: `
+                <strong>Selected Items:</strong><br>${orderDetails.replace(/\n/g, '<br>')}<br><br>
+                <strong>Delivery Type:</strong> ${deliveryText}<br>
+                <strong>Food Total:</strong> ₹${foodTotal.toFixed(2)}<br>
+                <strong>Delivery Charge:</strong> ₹${deliveryCharge.toFixed(2)}<br>
+                <strong>Total Amount:</strong> ₹${grandTotal.toFixed(2)}<br><br>
+                <strong>Delivery Address:</strong><br>
+                ${document.getElementById('address').value}<br>
+                ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('postal_code').value}<br>
+                Landmark: ${document.getElementById('landmark').value}
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm Order',
+            cancelButtonText: 'Cancel',
+            scrollbarPadding: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Create FormData object
+                const formData = new FormData(form);
+                
+                // Add selected food items to form data
+                selectedItems.forEach(item => {
+                    formData.append('food[]', item.value);
+                });
+                
+                // Submit form via AJAX
+                fetch('order-food.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message with actual order ID from database
+                        Swal.fire({
+                            title: 'Order Placed!',
+                            html: `
+                                <p>Your order has been placed successfully!</p>
+                                <p>Estimated delivery time: ${data.delivery_time}</p>
+                                <p>Order ID: #${data.order_id}</p>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'Great!'
+                        }).then(() => {
+                            // Reset form after successful order
+                            form.reset();
+                            document.querySelector('input[name="payment"][value="cash"]').checked = true;
+                            // Clear selected items
+                            document.querySelectorAll('.food-item input[type="checkbox"]').forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            document.getElementById('terms').checked = false;
+                            updateOrderSummary();
+                        });
+                    } else {
+                        // Show error message
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.errors.join('\n'),
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An error occurred while processing your order. Please try again.',
+                        icon: 'error'
+                    });
+                    console.error('Error:', error);
+                });
+            }
+        });
+    }
 
 
          // Sample data; expand this with full dataset as needed
