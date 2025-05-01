@@ -1,3 +1,3 @@
-* Flavour Fusion
+*Flavour Fusion
 
-** Online Food Order System
+**Online Food Order System
