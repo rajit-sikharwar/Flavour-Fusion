@@ -30,20 +30,21 @@
                 <h1 class="heading"><span>Order</span> Now</h1>
                 
                 <form id="orderForm">
+                    <!-- Personal Information Section -->
                     <div class="form-row">
                         <div class="input-group">
-                            <label for="name">Full Name</label>
+                            <label for="name">Full Name <span class="required">*</span></label>
                             <input type="text" id="name" name="name" required>
                         </div>
                         <div class="input-group">
-                            <label for="email">Email</label>
+                            <label for="email">Email <span class="required">*</span></label>
                             <input type="email" id="email" name="email" required>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="input-group">
-                            <label for="phone">Phone Number</label>
+                            <label for="phone">Phone Number <span class="required">*</span></label>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <div style="display: flex; align-items: center; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; padding: 0 10px; height: 46px;">
                                     <img src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/125px-Flag_of_India.svg.png" 
@@ -58,33 +59,65 @@
                                        maxlength="10" 
                                        required 
                                        style="flex: 1; padding-left: 12px;"
-                                       placeholder="1234567890">
+                                       placeholder="90000-90000">
                             </div>
                         </div>
                         <div class="input-group">
-                            <label for="persons">Number of Persons</label>
-                            <input type="number" id="persons" name="persons" min="1" required>
+                            <label for="persons">Alternative Phone Number <span class="required">*</span></label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="display: flex; align-items: center; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; padding: 0 10px; height: 46px;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/125px-Flag_of_India.svg.png" 
+                                         alt="India Flag" 
+                                         style="width: 20px; height: 14px; margin-right: 8px;">
+                                    <span style="font-size: 16px;">+91</span>
+                                </div>
+                                <input type="tel" 
+                                       id="altPhone" 
+                                       name="altPhone" 
+                                       pattern="[0-9]{10}" 
+                                       maxlength="10" 
+                                       required 
+                                       style="flex: 1; padding-left: 12px;"
+                                       placeholder="90000-90000">
+                            </div>
                         </div>
                     </div>
                     
+                    <!-- Delivery Information Section -->
                     <div class="input-group">
-                        <label for="address">Delivery Address</label>
-                        <textarea id="address" name="address" required></textarea>
+                        <label for="address">Complete Delivery Address <span class="required">*</span></label>
+                        <textarea id="address" name="address" required placeholder="House No., Building, Street, Area"></textarea>
                     </div>
                     
                     <div class="form-row">
                         <div class="input-group">
-                            <label for="city">City</label>
-                            <input type="text" id="city" name="city" required>
+                            <label for="state">State <span class="required">*</span></label>
+                            <select id="state" name="state" required>
+                                <option value="" selected disabled>--Select State--</option>
+                            </select>
                         </div>
                         <div class="input-group">
-                            <label for="postal_code">Postal Code</label>
-                            <input type="text" id="postal_code" name="postal_code" maxlength="6" required>
+                            <label for="city">City <span class="required">*</span></label>
+                            <select id="city" name="city" required>
+                                <option value="" selected disabled>--Select City--</option>
+                            </select>
                         </div>
                     </div>
                     
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="postal_code">Postal Code <span class="required">*</span></label>
+                            <input type="text" id="postal_code" name="postal_code" maxlength="6" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="landmark">Nearest Landmark <span class="required">*</span></label>
+                            <input type="text" id="landmark" name="landmark" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Details Section -->
                     <div class="input-group">
-                        <label>Select Your Food Items</label>
+                        <label>Select Your Food Items <span class="required">*</span></label>
                         <div class="food-options">
                             <label class="food-item">
                                 <input type="checkbox" name="food" value="Margherita Pizza" data-price="12.99">
@@ -109,14 +142,34 @@
                         </div>
                     </div>
                     
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="delivery_time">Preferred Delivery Time <span class="required">*</span></label>
+                            <input type="datetime-local" id="delivery_time" name="delivery_time" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="delivery_type">Delivery Type <span class="required">*</span></label>
+                            <select id="delivery_type" name="delivery_type" required>
+                                <option value="" disabled selected>Select delivery type</option>
+                                <option value="normal">Normal Delivery (60-90 mins)</option>
+                                <option value="express">Express Delivery (30-45 mins) + ₹50</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Requirements Section -->
                     <div class="input-group">
                         <label for="instructions">Special Instructions</label>
-                        <textarea id="instructions" name="instructions"></textarea>
+                        <textarea id="instructions" name="instructions" placeholder="Any allergies, dietary restrictions, or special requests"></textarea>
                     </div>
                     
                     <div class="input-group">
-                        <label for="delivery_time">Preferred Delivery Time</label>
-                        <input type="datetime-local" id="delivery_time" name="delivery_time" required>
+                        <label for="cutlery">Include Cutlery? <span class="required">*</span></label>
+                        <select id="cutlery" name="cutlery" required>
+                            <option value="" disabled selected>Select option</option>
+                            <option value="yes">Yes, please include cutlery</option>
+                            <option value="no">No, I don't need cutlery</option>
+                        </select>
                     </div>
                 </form>
             </div>
@@ -169,9 +222,17 @@
                     <div class="selected-items" id="selectedItems">
                         <div class="no-items">No items selected</div>
                     </div>
+                    <div class="delivery-charge" id="deliveryCharge">
+                        Delivery: ₹0.00
+                    </div>
                     <div class="total-amount" id="totalAmount">
                         Total: ₹0.00
                     </div>
+                </div>
+                
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">I agree to the <a href="#" style="color: var(--red);">Terms & Conditions</a> <span class="required">*</span></label>
                 </div>
                 
                 <button type="button" class="btn-order" onclick="placeOrder()">Place Order Now</button>
@@ -225,26 +286,34 @@
             checkbox.addEventListener('change', updateOrderSummary);
         });
         
+        // Update delivery type change
+        document.getElementById('delivery_type').addEventListener('change', updateOrderSummary);
+        
         function updateOrderSummary() {
             const selectedItemsContainer = document.getElementById('selectedItems');
             const totalAmountElement = document.getElementById('totalAmount');
+            const deliveryChargeElement = document.getElementById('deliveryCharge');
             
             // Get all selected food items
             const selectedItems = Array.from(document.querySelectorAll('.food-item input[type="checkbox"]:checked'));
+            const deliveryType = document.getElementById('delivery_type').value;
             
             if (selectedItems.length === 0) {
                 selectedItemsContainer.innerHTML = '<div class="no-items">No items selected</div>';
                 totalAmountElement.textContent = 'Total: ₹0.00';
+                deliveryChargeElement.textContent = 'Delivery: ₹0.00';
                 return;
             }
             
-            let total = 0;
+            let foodTotal = 0;
+            let deliveryCharge = 0;
             let itemsHTML = '';
             
+            // Calculate food total
             selectedItems.forEach(item => {
                 const itemName = item.value;
                 const itemPrice = parseFloat(item.dataset.price);
-                total += itemPrice;
+                foodTotal += itemPrice;
                 
                 itemsHTML += `
                     <div class="selected-item">
@@ -254,14 +323,23 @@
                 `;
             });
             
+            // Calculate delivery charge
+            if (deliveryType === 'express') {
+                deliveryCharge = 50;
+            }
+            
+            const grandTotal = foodTotal + deliveryCharge;
+            
             selectedItemsContainer.innerHTML = itemsHTML;
-            totalAmountElement.textContent = `Total: ₹${total.toFixed(2)}`;
+            deliveryChargeElement.textContent = `Delivery: ₹${deliveryCharge.toFixed(2)}`;
+            totalAmountElement.textContent = `Total: ₹${grandTotal.toFixed(2)}`;
         }
         
         function placeOrder() {
             // Validate form
             const form = document.getElementById('orderForm');
             const selectedItems = Array.from(document.querySelectorAll('.food-item input[type="checkbox"]:checked'));
+            const termsChecked = document.getElementById('terms').checked;
             
             if (!form.checkValidity()) {
                 Swal.fire({
@@ -281,28 +359,56 @@
                 return;
             }
             
+            if (!termsChecked) {
+                Swal.fire({
+                    title: 'Terms & Conditions',
+                    text: 'Please agree to the Terms & Conditions to proceed',
+                    icon: 'error'
+                });
+                return;
+            }
+            
             // Get order details for confirmation
             const orderDetails = selectedItems.map(item => {
                 return `${item.value} (₹${item.dataset.price})`;
             }).join('\n');
             
-            const totalAmount = selectedItems.reduce((sum, item) => sum + parseFloat(item.dataset.price), 0);
+            const deliveryType = document.getElementById('delivery_type').value;
+            const deliveryText = deliveryType === 'express' ? 'Express Delivery (+₹50)' : 'Normal Delivery';
+            
+            const foodTotal = selectedItems.reduce((sum, item) => sum + parseFloat(item.dataset.price), 0);
+            const deliveryCharge = deliveryType === 'express' ? 50 : 0;
+            const grandTotal = foodTotal + deliveryCharge;
             
             // Show order confirmation
             Swal.fire({
                 title: 'Confirm Your Order',
-                html: `<strong>Selected Items:</strong><br>${orderDetails.replace(/\n/g, '<br>')}<br><br>
-                      <strong>Total Amount:</strong> ₹${totalAmount.toFixed(2)}`,
+                html: `
+                    <strong>Selected Items:</strong><br>${orderDetails.replace(/\n/g, '<br>')}<br><br>
+                    <strong>Delivery Type:</strong> ${deliveryText}<br>
+                    <strong>Food Total:</strong> ₹${foodTotal.toFixed(2)}<br>
+                    <strong>Delivery Charge:</strong> ₹${deliveryCharge.toFixed(2)}<br>
+                    <strong>Total Amount:</strong> ₹${grandTotal.toFixed(2)}<br><br>
+                    <strong>Delivery Address:</strong><br>
+                    ${document.getElementById('address').value}<br>
+                    ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('postal_code').value}<br>
+                    Landmark: ${document.getElementById('landmark').value}
+                `,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Confirm Order',
-                cancelButtonText: 'Cancel'
+                cancelButtonText: 'Cancel',
+                scrollbarPadding: false
             }).then((result) => {
                 if (result.isConfirmed) {
                     // If confirmed, show success message
                     Swal.fire({
                         title: 'Order Placed!',
-                        text: 'Your order has been placed successfully!',
+                        html: `
+                            <p>Your order has been placed successfully!</p>
+                            <p>Estimated delivery time: ${getDeliveryTime()}</p>
+                            <p>Order ID: #${Math.floor(100000 + Math.random() * 900000)}</p>
+                        `,
                         icon: 'success',
                         confirmButtonText: 'Great!'
                     }).then(() => {
@@ -313,11 +419,105 @@
                         document.querySelectorAll('.food-item input[type="checkbox"]').forEach(checkbox => {
                             checkbox.checked = false;
                         });
+                        document.getElementById('terms').checked = false;
                         updateOrderSummary();
                     });
                 }
             });
         }
+        
+        function getDeliveryTime() {
+            const deliveryType = document.getElementById('delivery_type').value;
+            const deliveryTime = document.getElementById('delivery_time').value;
+            
+            if (deliveryTime) {
+                const deliveryDate = new Date(deliveryTime);
+                const now = new Date();
+                
+                // If delivery time is in the future
+                if (deliveryDate > now) {
+                    const options = { hour: '2-digit', minute: '2-digit' };
+                    return `Today by ${deliveryDate.toLocaleTimeString('en-IN', options)}`;
+                }
+            }
+            
+            // Default estimate based on delivery type
+            if (deliveryType === 'express') {
+                return 'Within 30-45 minutes';
+            } else {
+                return 'Within 60-90 minutes';
+            }
+        }
+
+
+         // Sample data; expand this with full dataset as needed
+         const statesData = [
+            { "name": "Andaman and Nicobar Islands", "cities": ["Port Blair", "Havelock Island", "Neil Island"] },
+            { "name": "Andhra Pradesh", "cities": ["Visakhapatnam", "Vijayawada", "Guntur"] },
+            { "name": "Arunachal Pradesh", "cities": ["Itanagar", "Naharlagun", "Pasighat"] },
+            { "name": "Assam", "cities": ["Guwahati", "Dibrugarh", "Silchar"] },
+            { "name": "Bihar", "cities": ["Patna", "Gaya", "Bhagalpur"] },
+            { "name": "Chandigarh", "cities": ["Chandigarh"] },
+            { "name": "Chhattisgarh", "cities": ["Raipur", "Bilaspur", "Durg"] },
+            { "name": "Dadra and Nagar Haveli and Daman and Diu", "cities": ["Daman", "Diu", "Silvassa"] },
+            { "name": "Delhi", "cities": ["New Delhi", "Dwarka", "Rohini"] },
+            { "name": "Goa", "cities": ["Panaji", "Margao", "Mapusa"] },
+            { "name": "Gujarat", "cities": ["Ahmedabad", "Surat", "Vadodara"] },
+            { "name": "Haryana", "cities": ["Gurgaon", "Faridabad", "Ambala"] },
+            { "name": "Himachal Pradesh", "cities": ["Shimla", "Dharamshala", "Kullu"] },
+            { "name": "Jammu and Kashmir", "cities": ["Srinagar", "Jammu", "Leh"] },
+            { "name": "Jharkhand", "cities": ["Ranchi", "Jamshedpur", "Dhanbad"] },
+            { "name": "Karnataka", "cities": ["Bengaluru", "Mysuru", "Mangalore"] },
+            { "name": "Kerala", "cities": ["Thiruvananthapuram", "Kochi", "Kozhikode"] },
+            { "name": "Ladakh", "cities": ["Leh", "Kargil"] },
+            { "name": "Lakshadweep", "cities": ["Kavaratti", "Agatti", "Minicoy"] },
+            { "name": "Madhya Pradesh", "cities": ["Bhopal", "Indore", "Gwalior"] },
+            { "name": "Maharashtra", "cities": ["Mumbai", "Pune", "Nagpur"] },
+            { "name": "Manipur", "cities": ["Imphal", "Thoubal", "Churachandpur"] },
+            { "name": "Meghalaya", "cities": ["Shillong", "Tura", "Jowai"] },
+            { "name": "Mizoram", "cities": ["Aizawl", "Lunglei", "Champhai"] },
+            { "name": "Nagaland", "cities": ["Kohima", "Dimapur", "Mokokchung"] },
+            { "name": "Odisha", "cities": ["Bhubaneswar", "Cuttack", "Sambalpur"] },
+            { "name": "Puducherry", "cities": ["Puducherry", "Karaikal", "Mahe"] },
+            { "name": "Punjab", "cities": ["Chandigarh", "Amritsar", "Ludhiana"] },
+            { "name": "Rajasthan", "cities": ["Jaipur", "Udaipur", "Jodhpur"] },
+            { "name": "Sikkim", "cities": ["Gangtok", "Namchi", "Pelling"] },
+            { "name": "Tamil Nadu", "cities": ["Chennai", "Coimbatore", "Madurai"] },
+            { "name": "Telangana", "cities": ["Hyderabad", "Warangal", "Nizamabad"] },
+            { "name": "Tripura", "cities": ["Agartala", "Udaipur", "Ambassa"] },
+            { "name": "Uttar Pradesh", "cities": ["Lucknow", "Kanpur", "Varanasi"] },
+            { "name": "Uttarakhand", "cities": ["Dehradun", "Haridwar", "Nainital"] },
+            { "name": "West Bengal", "cities": ["Asansol","Kolkata", "Siliguri", "Durgapur"] }
+        ];
+
+        const stateSelect = document.getElementById('state');
+        const citySelect = document.getElementById('city');
+
+        // Populate state dropdown
+        statesData.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state.name;
+            option.textContent = state.name;
+            stateSelect.appendChild(option);
+        });
+
+        // Update city dropdown based on selected state
+        stateSelect.addEventListener('change', function() {
+            const selectedState = this.value;
+            const state = statesData.find(s => s.name === selectedState);
+
+            // Clear existing cities
+            citySelect.innerHTML = '<option value="">--Select City--</option>';
+
+            if (state) {
+                state.cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            }
+        });
     </script>
 </body>
 </html>
