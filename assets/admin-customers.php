@@ -32,14 +32,8 @@ $completedOrders = 0;
 $cancelledOrders = 0;
 
 try {
-    // Try fetching orders with 'users' table first
-    $stmt = $pdo->prepare("
-        SELECT o.*, u.full_name, u.email, u.phone 
-        FROM orders o
-        JOIN users u ON o.user_id = u.id
-        ORDER BY o.order_date DESC
-    ");
-    $stmt->execute();
+    // Fetch all orders
+    $stmt = $pdo->query("SELECT * FROM orders ORDER BY order_date DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $totalOrders = count($orders);
 
@@ -52,7 +46,7 @@ try {
     $pendingOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 
     // Count completed orders
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Completed'");
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Delivered'");
     $completedOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 
     // Count cancelled orders
@@ -90,6 +84,7 @@ try {
     <title>Customer Orders - Flavour Fusion</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* [Previous CSS styles remain exactly the same] */
         :root {
             --primary: #e67e22;
             --primary-dark: #d35400;

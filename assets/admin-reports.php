@@ -308,14 +308,14 @@ try {
             </div>
             <div class="summary-card">
                 <h3><i class="fas fa-money-bill-wave"></i> Total Revenue</h3>
-                <p>$<?php 
+                <p>₹<?php 
                     $total = array_sum(array_column($sales_data, 'total_sales'));
                     echo number_format($total, 2); 
                 ?></p>
             </div>
             <div class="summary-card">
                 <h3><i class="fas fa-calculator"></i> Average Order Value</h3>
-                <p>$<?php 
+                <p>₹<?php 
                     $avg = count($sales_data) > 0 ? $total / count($sales_data) : 0;
                     echo number_format($avg, 2); 
                 ?></p>
@@ -357,7 +357,7 @@ try {
                             <tr>
                                 <td><?php echo htmlspecialchars($product['name']); ?></td>
                                 <td><?php echo $product['total_quantity']; ?></td>
-                                <td>$<?php echo number_format($product['total_revenue'], 2); ?></td>
+                                <td>₹<?php echo number_format($product['total_revenue'], 2); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
