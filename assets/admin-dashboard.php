@@ -512,7 +512,7 @@ function getOrderedItems($instructions) {
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <img src="https://via.placeholder.com/150" alt="Admin Profile">
+            <img src="../images/default.png" alt="User Profile" style="border: 2px solid #000000; border-radius: 50%; width: 50px; height: 50px;">
             <div>
                 <h3><?php echo htmlspecialchars($_SESSION['admin_name']); ?></h3>
                 <p>Administrator</p>
@@ -556,8 +556,13 @@ function getOrderedItems($instructions) {
         <div class="header">
             <h1>Dashboard Overview</h1>
             <div class="user-profile">
-                <img src="https://via.placeholder.com/150" alt="User Profile">
-                <button class="logout-btn">Logout</button>
+                <img src="../images/default.png" alt="User Profile" style="border: 2px solid #000000; border-radius: 50%;">
+                <div class="user-name" style="margin-right: 40px;"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></div>
+                <a href="?logout=1" class="logout-btn">Logout</a>
+                <!-- Logout Button -->
+                <form method="post" action="admin-dashboard.php" style="display: none;" id="logout-form">
+                    <input type="hidden" name="logout" value="1" class="logout-btn">
+                </form>
             </div>
         </div>
         

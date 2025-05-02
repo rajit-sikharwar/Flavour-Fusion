@@ -24,31 +24,55 @@ try {
 // Initialize variables
 $error = '';
 $orders = [];
+$customerCount = 0;
+$customers = [];
+$totalOrders = 0;
+$pendingOrders = 0;
+$completedOrders = 0;
+$cancelledOrders = 0;
 
 try {
-    // Try fetching orders with 'users' table first
-    $stmt = $pdo->prepare("
-        SELECT o.*, u.full_name, u.email, u.phone 
-        FROM orders o
-        JOIN users u ON o.user_id = u.id
-        ORDER BY o.order_date DESC
-    ");
-    $stmt->execute();
+    // Fetch all orders
+    $stmt = $pdo->query("SELECT * FROM orders ORDER BY order_date DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $totalOrders = count($orders);
+
+    // Count unique customers (based on email)
+    $stmt = $pdo->query("SELECT COUNT(DISTINCT email) as customer_count FROM orders");
+    $customerCount = $stmt->fetch(PDO::FETCH_ASSOC)['customer_count'];
+
+    // Count pending orders
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Pending'");
+    $pendingOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+    // Count completed orders
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Completed'");
+    $completedOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+    // Count cancelled orders
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Cancelled'");
+    $cancelledOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+    // Get unique customers list with their order counts
+    $stmt = $pdo->query("
+        SELECT 
+            name, 
+            email, 
+            phone, 
+            alt_phone, 
+            state,
+            COUNT(*) as total_orders,
+            SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_orders,
+            SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed_orders,
+            SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) as cancelled_orders
+        FROM orders 
+        GROUP BY email 
+        ORDER BY name
+    ");
+    $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch(PDOException $e) {
-    // If 'users' table doesn't exist, try with 'customers' table
-    try {
-        $stmt = $pdo->prepare("
-            SELECT o.*, c.full_name, c.email, c.phone 
-            FROM orders o
-            JOIN customers c ON o.user_id = c.id
-            ORDER BY o.order_date DESC
-        ");
-        $stmt->execute();
-        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch(PDOException $e) {
-        $error = "Could not fetch orders. Please check your database tables.";
-    }
+    $error = "Could not fetch data: " . $e->getMessage();
 }
 ?>
 
@@ -127,6 +151,35 @@ try {
             border-radius: 8px;
             margin-bottom: 20px;
             border-left: 4px solid var(--danger);
+        }
+        
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
         }
         
         table {
@@ -212,6 +265,86 @@ try {
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
+        
+        .customer-list {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .customer-list h2 {
+            margin-bottom: 20px;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .customer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .customer-card {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .customer-card h3 {
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+        
+        .customer-card p {
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .customer-card p i {
+            color: var(--primary);
+            margin-right: 8px;
+            width: 20px;
+        }
+        
+        .customer-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .stat-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .stat-total {
+            background-color: rgba(230, 126, 34, 0.1);
+            color: var(--primary);
+        }
+        
+        .stat-pending {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning);
+        }
+        
+        .stat-completed {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success);
+        }
+        
+        .stat-cancelled {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
     </style>
 </head>
 <body>
@@ -231,6 +364,65 @@ try {
                 <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> Total Customers</h3>
+                <p><?php echo $customerCount; ?></p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-shopping-cart"></i> Total Orders</h3>
+                <p><?php echo $totalOrders; ?></p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-clock"></i> Pending Orders</h3>
+                <p><?php echo $pendingOrders; ?></p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-check-circle"></i> Completed Orders</h3>
+                <p><?php echo $completedOrders; ?></p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-times-circle"></i> Cancelled Orders</h3>
+                <p><?php echo $cancelledOrders; ?></p>
+            </div>
+        </div>
+        
+        <div class="customer-list">
+            <h2><i class="fas fa-user-friends"></i> Customer List (<?php echo $customerCount; ?>)</h2>
+            <div class="customer-grid">
+                <?php foreach ($customers as $customer): ?>
+                    <div class="customer-card">
+                        <h3><?php echo htmlspecialchars($customer['name']); ?></h3>
+                        <p><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($customer['email']); ?></p>
+                        <p><i class="fas fa-phone"></i> <?php echo htmlspecialchars($customer['phone']); ?></p>
+                        <?php if (!empty($customer['alt_phone'])): ?>
+                            <p><i class="fas fa-phone-alt"></i> <?php echo htmlspecialchars($customer['alt_phone']); ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($customer['state'])): ?>
+                            <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($customer['state']); ?></p>
+                        <?php endif; ?>
+                        
+                        <div class="customer-stats">
+                            <span class="stat-badge stat-total" title="Total Orders">
+                                <i class="fas fa-shopping-cart"></i> <?php echo $customer['total_orders']; ?>
+                            </span>
+                            <span class="stat-badge stat-pending" title="Pending Orders">
+                                <i class="fas fa-clock"></i> <?php echo $customer['pending_orders']; ?>
+                            </span>
+                            <span class="stat-badge stat-completed" title="Completed Orders">
+                                <i class="fas fa-check"></i> <?php echo $customer['completed_orders']; ?>
+                            </span>
+                            <span class="stat-badge stat-cancelled" title="Cancelled Orders">
+                                <i class="fas fa-times"></i> <?php echo $customer['cancelled_orders']; ?>
+                            </span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        
+        <h2 style="margin: 30px 0 20px; color: var(--secondary);"><i class="fas fa-clipboard-list"></i> Recent Orders (<?php echo $totalOrders; ?>)</h2>
         
         <?php if (empty($orders)): ?>
             <div class="no-orders">
@@ -255,11 +447,11 @@ try {
                     <?php foreach ($orders as $order): ?>
                         <tr>
                             <td>#<?php echo htmlspecialchars($order['id']); ?></td>
-                            <td><?php echo htmlspecialchars($order['full_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['name']); ?></td>
                             <td><?php echo htmlspecialchars($order['email']); ?></td>
                             <td><?php echo htmlspecialchars($order['phone']); ?></td>
                             <td><?php echo date('M j, Y g:i A', strtotime($order['order_date'])); ?></td>
-                            <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                            <td>₹<?php echo number_format($order['total_amount'], 2); ?></td>
                             <td class="status-<?php echo strtolower($order['status']); ?>">
                                 <?php echo htmlspecialchars($order['status']); ?>
                             </td>

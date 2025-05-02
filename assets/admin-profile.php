@@ -12,7 +12,6 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'flavour-fusion');
-define('PROFILE_IMAGE_DIR', 'profile-images/');
 
 // Connect to database
 try {
@@ -66,47 +65,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     
-    // Handle profile image upload
-    $profile_image = $admin['profile_image'];
-    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
-        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-        $file_type = $_FILES['profile_image']['type'];
-        
-        if (in_array($file_type, $allowed_types)) {
-            $file_ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
-            $file_name = uniqid('admin_') . '.' . $file_ext;
-            $target_path = PROFILE_IMAGE_DIR . $file_name;
-            
-            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target_path)) {
-                // Delete old profile image if it's not the default
-                if ($profile_image !== 'default.png' && file_exists(PROFILE_IMAGE_DIR . $profile_image)) {
-                    unlink(PROFILE_IMAGE_DIR . $profile_image);
-                }
-                $profile_image = $file_name;
-            } else {
-                $errors[] = "Failed to upload profile image.";
-            }
-        } else {
-            $errors[] = "Only JPG, PNG, and GIF images are allowed.";
-        }
-    }
-    
     // If no errors, proceed with update
     if (empty($errors)) {
         try {
             if ($password_changed) {
                 $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE admin SET full_name = ?, email = ?, profile_image = ?, password = ? WHERE id = ?");
-                $stmt->execute([$full_name, $email, $profile_image, $hashed_password, $admin_id]);
+                $stmt = $pdo->prepare("UPDATE admin SET full_name = ?, email = ?, password = ? WHERE id = ?");
+                $stmt->execute([$full_name, $email, $hashed_password, $admin_id]);
             } else {
-                $stmt = $pdo->prepare("UPDATE admin SET full_name = ?, email = ?, profile_image = ? WHERE id = ?");
-                $stmt->execute([$full_name, $email, $profile_image, $admin_id]);
+                $stmt = $pdo->prepare("UPDATE admin SET full_name = ?, email = ? WHERE id = ?");
+                $stmt->execute([$full_name, $email, $admin_id]);
             }
             
             // Update session data
             $_SESSION['admin_full_name'] = $full_name;
             $_SESSION['admin_email'] = $email;
-            $_SESSION['admin_profile_image'] = $profile_image;
             
             $success = true;
         } catch(PDOException $e) {
@@ -129,123 +102,295 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Profile - Flavour Fusion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #e67e22;
+            --primary-dark: #d35400;
+            --secondary: #2c3e50;
+            --light: #f5f5f5;
+            --white: #ffffff;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --info: #3498db;
+            --gray: #95a5a6;
+            --dark: #34495e;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            box-sizing: border-box;
         }
-        .container {
-            width: 80%;
-            max-width: 800px;
-            margin: 30px auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
         }
+        
         header {
-            background-color: #e67e22;
-            color: white;
+            background-color: var(--primary);
+            color: var(--white);
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+        
         h1 {
-            margin: 0;
             text-align: center;
-            color: #e67e22;
+            color: var(--secondary);
+            margin-bottom: 30px;
+            font-size: 2rem;
         }
+        
         .nav-links a {
-            color: white;
+            color: var(--white);
             text-decoration: none;
-            margin-left: 15px;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: all 0.3s;
         }
+        
+        .nav-links a:hover {
+            color: #f8f8f8;
+            text-decoration: underline;
+        }
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            position: relative;
         }
-        label {
+        
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
         }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 40px;
+            color: var(--gray);
+        }
+        
         input[type="text"],
         input[type="email"],
         input[type="password"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            color: var(--dark);
         }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
+        }
+        
         button {
             width: 100%;
-            padding: 12px;
-            background: #e67e22;
-            color: white;
+            padding: 14px;
+            background: var(--primary);
+            color: var(--white);
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-        }
-        button:hover {
-            background: #d35400;
-        }
-        .error {
-            color: #e74c3c;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #fdecea;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .success {
-            color: #27ae60;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #e8f5e9;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .profile-image-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #e67e22;
-        }
-        .image-upload {
-            text-align: center;
+            transition: all 0.3s;
             margin-top: 10px;
         }
+        
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
+        }
+        
+        .error {
+            color: var(--danger);
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .success {
+            color: var(--success);
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--success);
+        }
+        
         .password-strength {
             margin-top: 5px;
-            font-size: 14px;
-            color: #666;
+            font-size: 0.85rem;
+            padding: 5px;
+            border-radius: 4px;
         }
+        
         .strength-weak {
-            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
         }
+        
         .strength-medium {
-            color: #f39c12;
+            background-color: rgba(241, 196, 15, 0.1);
+            color: var(--warning);
         }
+        
         .strength-strong {
-            color: #27ae60;
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success);
+        }
+        
+        .profile-icon {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .profile-icon i {
+            font-size: 5rem;
+            color: var(--primary);
+            background-color: rgba(230, 126, 34, 0.1);
+            padding: 30px;
+            border-radius: 50%;
         }
     </style>
+</head>
+<body>
+    <header>
+        <h1>Flavour Fusion Admin</h1>
+        <div class="nav-links">
+            <a href="admin-dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="admin-customers.php"><i class="fas fa-users"></i> Customers</a>
+            <a href="admin-reports.php"><i class="fas fa-chart-bar"></i> Reports</a>
+            <a href="admin-logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <h1><i class="fas fa-user-cog"></i> Admin Profile</h1>
+        
+        <?php if (!empty($errors)): ?>
+            <div class="error">
+                <i class="fas fa-exclamation-circle"></i>
+                <?php foreach ($errors as $error): ?>
+                    <p><?php echo htmlspecialchars($error); ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if ($success): ?>
+            <div class="success">
+                <i class="fas fa-check-circle"></i>
+                <p>Profile updated successfully!</p>
+            </div>
+        <?php endif; ?>
+        
+        <div class="profile-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" name="username" 
+                       value="<?php echo htmlspecialchars($admin['username']); ?>" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <i class="fas fa-id-card input-icon"></i>
+                <input type="text" id="full_name" name="full_name" required
+                       value="<?php echo htmlspecialchars($admin['full_name']); ?>">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" id="email" name="email" required
+                       value="<?php echo htmlspecialchars($admin['email']); ?>">
+            </div>
+            
+            <div class="form-group">
+                <label for="current_password">Current Password (required for password change)</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="current_password" name="current_password">
+            </div>
+            
+            <div class="form-group">
+                <label for="new_password">New Password (leave blank to keep current)</label>
+                <i class="fas fa-key input-icon"></i>
+                <input type="password" id="new_password" name="new_password"
+                       onkeyup="checkPasswordStrength(this.value)">
+                <div id="password-strength" class="password-strength"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="confirm_password" name="confirm_password"
+                       onkeyup="validatePasswordMatch()">
+                <div id="password-match" class="password-strength"></div>
+            </div>
+            
+            <button type="submit">
+                <i class="fas fa-save"></i> Update Profile
+            </button>
+        </form>
+    </div>
+
     <script>
         function checkPasswordStrength(password) {
             const strengthText = document.getElementById('password-strength');
             
             if (!password) {
                 strengthText.textContent = '';
+                strengthText.className = 'password-strength';
                 return;
             }
             
@@ -270,17 +415,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
             // Determine strength level
             let strengthLevel, strengthClass;
             if (strength <= 2) {
-                strengthLevel = 'Weak';
+                strengthLevel = 'Weak password';
                 strengthClass = 'strength-weak';
             } else if (strength <= 4) {
-                strengthLevel = 'Medium';
+                strengthLevel = 'Medium strength password';
                 strengthClass = 'strength-medium';
             } else {
-                strengthLevel = 'Strong';
+                strengthLevel = 'Strong password';
                 strengthClass = 'strength-strong';
             }
             
-            strengthText.textContent = `Strength: ${strengthLevel}`;
+            strengthText.textContent = strengthLevel;
             strengthText.className = 'password-strength ' + strengthClass;
         }
         
@@ -291,6 +436,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
             
             if (!password || !confirmPassword) {
                 matchText.textContent = '';
+                matchText.className = 'password-strength';
                 return;
             }
             
@@ -302,94 +448,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
                 matchText.className = 'password-strength strength-weak';
             }
         }
-        
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const preview = document.getElementById('profile-image-preview');
-                preview.src = reader.result;
-            }
-            reader.readAsDataURL(event.target.files[0]);
-        }
     </script>
-</head>
-<body>
-    <header>
-        <h1>Flavour Fusion Admin</h1>
-        <div class="nav-links">
-            <a href="admin-dashboard.php">Dashboard</a>
-            <a href="admin-customers.php">Customers</a>
-            <a href="admin-reports.php">Reports</a>
-            <a href="admin-logout.php">Logout</a>
-        </div>
-    </header>
-    
-    <div class="container">
-        <h1>Admin Profile</h1>
-        
-        <?php if (!empty($errors)): ?>
-            <div class="error">
-                <?php foreach ($errors as $error): ?>
-                    <p><?php echo htmlspecialchars($error); ?></p>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ($success): ?>
-            <div class="success">
-                <p>Profile updated successfully!</p>
-            </div>
-        <?php endif; ?>
-        
-        <form method="post" enctype="multipart/form-data">
-            <div class="profile-image-container">
-                <img id="profile-image-preview" src="<?php echo PROFILE_IMAGE_DIR . htmlspecialchars($admin['profile_image']); ?>" 
-                     alt="Profile Image" class="profile-image">
-                <div class="image-upload">
-                    <input type="file" id="profile_image" name="profile_image" 
-                           accept="image/*" onchange="previewImage(event)">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" 
-                       value="<?php echo htmlspecialchars($admin['username']); ?>" readonly>
-            </div>
-            
-            <div class="form-group">
-                <label for="full_name">Full Name</label>
-                <input type="text" id="full_name" name="full_name" required
-                       value="<?php echo htmlspecialchars($admin['full_name']); ?>">
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required
-                       value="<?php echo htmlspecialchars($admin['email']); ?>">
-            </div>
-            
-            <div class="form-group">
-                <label for="current_password">Current Password (required for password change)</label>
-                <input type="password" id="current_password" name="current_password">
-            </div>
-            
-            <div class="form-group">
-                <label for="new_password">New Password (leave blank to keep current)</label>
-                <input type="password" id="new_password" name="new_password"
-                       onkeyup="checkPasswordStrength(this.value)">
-                <div id="password-strength" class="password-strength"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirm_password">Confirm New Password</label>
-                <input type="password" id="confirm_password" name="confirm_password"
-                       onkeyup="validatePasswordMatch()">
-                <div id="password-match" class="password-strength"></div>
-            </div>
-            
-            <button type="submit">Update Profile</button>
-        </form>
-    </div>
 </body>
 </html>
