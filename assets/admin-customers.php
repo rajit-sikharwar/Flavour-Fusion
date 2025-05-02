@@ -28,7 +28,7 @@ $customerCount = 0;
 $customers = [];
 $totalOrders = 0;
 $pendingOrders = 0;
-$completedOrders = 0;
+$deliveredOrders = 0;
 $cancelledOrders = 0;
 
 try {
@@ -45,9 +45,9 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Pending'");
     $pendingOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 
-    // Count completed orders
+    // Count delivered orders
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Delivered'");
-    $completedOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $deliveredOrders = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 
     // Count cancelled orders
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM orders WHERE status = 'Cancelled'");
@@ -63,7 +63,7 @@ try {
             state,
             COUNT(*) as total_orders,
             SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_orders,
-            SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed_orders,
+            SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) as delivered_orders,
             SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) as cancelled_orders
         FROM orders 
         GROUP BY email 
@@ -84,7 +84,6 @@ try {
     <title>Customer Orders - Flavour Fusion</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* [Previous CSS styles remain exactly the same] */
         :root {
             --primary: #e67e22;
             --primary-dark: #d35400;
@@ -213,7 +212,7 @@ try {
             font-weight: 600;
         }
         
-        .status-completed {
+        .status-delivered {
             color: var(--success);
             font-weight: 600;
         }
@@ -337,7 +336,7 @@ try {
             color: var(--warning);
         }
         
-        .stat-completed {
+        .stat-delivered {
             background-color: rgba(39, 174, 96, 0.1);
             color: var(--success);
         }
@@ -380,8 +379,8 @@ try {
                 <p><?php echo $pendingOrders; ?></p>
             </div>
             <div class="stat-card">
-                <h3><i class="fas fa-check-circle"></i> Completed Orders</h3>
-                <p><?php echo $completedOrders; ?></p>
+                <h3><i class="fas fa-check-circle"></i> Delivered Orders</h3>
+                <p><?php echo $deliveredOrders; ?></p>
             </div>
             <div class="stat-card">
                 <h3><i class="fas fa-times-circle"></i> Cancelled Orders</h3>
@@ -411,8 +410,8 @@ try {
                             <span class="stat-badge stat-pending" title="Pending Orders">
                                 <i class="fas fa-clock"></i> <?php echo $customer['pending_orders']; ?>
                             </span>
-                            <span class="stat-badge stat-completed" title="Completed Orders">
-                                <i class="fas fa-check"></i> <?php echo $customer['completed_orders']; ?>
+                            <span class="stat-badge stat-delivered" title="Delivered Orders">
+                                <i class="fas fa-check"></i> <?php echo $customer['delivered_orders']; ?>
                             </span>
                             <span class="stat-badge stat-cancelled" title="Cancelled Orders">
                                 <i class="fas fa-times"></i> <?php echo $customer['cancelled_orders']; ?>
