@@ -32,8 +32,14 @@ $completedOrders = 0;
 $cancelledOrders = 0;
 
 try {
-    // Fetch all orders
-    $stmt = $pdo->query("SELECT * FROM orders ORDER BY order_date DESC");
+    // Try fetching orders with 'users' table first
+    $stmt = $pdo->prepare("
+        SELECT o.*, u.full_name, u.email, u.phone 
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        ORDER BY o.order_date DESC
+    ");
+    $stmt->execute();
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $totalOrders = count($orders);
 
