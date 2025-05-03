@@ -25,13 +25,17 @@ try {
 $total_orders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 $total_earnings = $pdo->query("SELECT SUM(total_amount) FROM orders")->fetchColumn();
 $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn();
+$preparing_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'preparing'")->fetchColumn();
+$ontheway_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'on the way'")->fetchColumn();
 $delivered_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn();
+$cancelled_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'cancelled'")->fetchColumn();
 
-// Get all orders
+// Get recent orders (last 10)
 $stmt = $pdo->query("
     SELECT *
     FROM orders
     ORDER BY order_date DESC
+    LIMIT 10
 ");
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -83,6 +87,7 @@ function getOrderedItems($instructions) {
             --success: #27ae60;
             --warning: #f39c12;
             --danger: #e74c3c;
+            --info: #3498db;
             --white: #fff;
             --sidebar-width: 250px;
         }
@@ -211,11 +216,30 @@ function getOrderedItems($instructions) {
         }
         
         /* Stats Cards */
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        .stats-container {
+            display: flex;
+            overflow-x: auto;
             gap: 1.5rem;
             margin-bottom: 2rem;
+            padding-bottom: 1rem;
+        }
+        
+        .stats-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .stats-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .stats-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .stats-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
         
         .stats-card {
@@ -226,6 +250,8 @@ function getOrderedItems($instructions) {
             display: flex;
             align-items: center;
             transition: transform 0.3s;
+            min-width: 200px;
+            flex-shrink: 0;
         }
         
         .stats-card:hover {
@@ -233,14 +259,14 @@ function getOrderedItems($instructions) {
         }
         
         .stats-icon {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 1.5rem;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
         
         .stats-icon.primary {
@@ -260,17 +286,22 @@ function getOrderedItems($instructions) {
         
         .stats-icon.info {
             background: rgba(52, 152, 219, 0.1);
-            color: #3498db;
+            color: var(--info);
+        }
+        
+        .stats-icon.danger {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
         }
         
         .stats-info h3 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             margin-bottom: 0.2rem;
         }
         
         .stats-info p {
             color: var(--gray);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         /* Orders Section */
@@ -329,7 +360,7 @@ function getOrderedItems($instructions) {
         }
         
         .status-on-the-way {
-            background: #fff3cd;
+            background: #ffeeba;
             color: #856404;
         }
         
@@ -424,6 +455,7 @@ function getOrderedItems($instructions) {
             border: 1px solid var(--light-gray);
             border-radius: 4px;
             margin-right: 0.5rem;
+            font-family: inherit;
         }
         
         .update-form button {
@@ -434,6 +466,7 @@ function getOrderedItems($instructions) {
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.3s;
+            font-family: inherit;
         }
         
         .update-form button:hover {
@@ -441,6 +474,12 @@ function getOrderedItems($instructions) {
         }
         
         /* Responsive Styles */
+        @media (max-width: 1200px) {
+            .stats-card {
+                min-width: 180px;
+            }
+        }
+        
         @media (max-width: 992px) {
             .sidebar {
                 width: 80px;
@@ -473,14 +512,30 @@ function getOrderedItems($instructions) {
                 grid-template-columns: 1fr;
             }
             
-            .stats-cards {
-                grid-template-columns: 1fr 1fr;
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .user-profile {
+                margin-top: 1rem;
             }
         }
         
         @media (max-width: 576px) {
-            .stats-cards {
-                grid-template-columns: 1fr;
+            .stats-card {
+                min-width: 160px;
+                padding: 1rem;
+            }
+            
+            .stats-icon {
+                width: 40px;
+                height: 40px;
+                margin-right: 1rem;
+            }
+            
+            .stats-info h3 {
+                font-size: 1.3rem;
             }
             
             .order-header {
@@ -559,15 +614,11 @@ function getOrderedItems($instructions) {
                 <img src="../images/default.png" alt="User Profile" style="border: 2px solid #000000; border-radius: 50%;">
                 <div class="user-name" style="margin-right: 40px;"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></div>
                 <a href="?logout=1" class="logout-btn">Logout</a>
-                <!-- Logout Button -->
-                <form method="post" action="admin-dashboard.php" style="display: none;" id="logout-form">
-                    <input type="hidden" name="logout" value="1" class="logout-btn">
-                </form>
             </div>
         </div>
         
-        <!-- Statistics Cards -->
-        <div class="stats-cards">
+        <!-- Statistics Cards - Horizontal Scrollable -->
+        <div class="stats-container">
             <div class="stats-card">
                 <div class="stats-icon primary">
                     <i class="fas fa-shopping-bag"></i>
@@ -600,11 +651,41 @@ function getOrderedItems($instructions) {
             
             <div class="stats-card">
                 <div class="stats-icon info">
+                    <i class="fas fa-blender"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($preparing_orders); ?></h3>
+                    <p>Preparing</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon warning">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($ontheway_orders); ?></h3>
+                    <p>On the Way</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon success">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stats-info">
                     <h3><?php echo number_format($delivered_orders); ?></h3>
-                    <p>Delivered Orders</p>
+                    <p>Delivered</p>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon danger">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stats-info">
+                    <h3><?php echo number_format($cancelled_orders); ?></h3>
+                    <p>Cancelled</p>
                 </div>
             </div>
         </div>
@@ -612,95 +693,101 @@ function getOrderedItems($instructions) {
         <!-- Recent Orders Section -->
         <h2 class="section-title">Recent Orders</h2>
         
-        <?php foreach ($orders as $order): ?>
-            <div class="order-card">
-                <div class="order-header">
-                    <div>
-                        <div class="order-id">Order #<?php echo $order['id']; ?></div>
-                        <div class="order-date"><?php echo date('M j, Y g:i A', strtotime($order['order_date'])); ?></div>
-                    </div>
-                    <div class="order-status status-<?php echo str_replace(' ', '-', strtolower($order['status'])); ?>">
-                        <?php echo ucfirst($order['status']); ?>
-                    </div>
-                </div>
-                
-                <div class="order-body">
-                    <div class="order-section">
-                        <h3 class="section-subtitle"><i class="fas fa-user"></i> Customer Details</h3>
-                        <div class="detail-group">
-                            <div class="detail-label">Name:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['name']); ?></div>
-                        </div>
-                        <div class="detail-group">
-                            <div class="detail-label">Email:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['email']); ?></div>
-                        </div>
-                        <div class="detail-group">
-                            <div class="detail-label">Phone:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['phone']); ?></div>
-                        </div>
-                    </div>
-                    
-                    <div class="order-section">
-                        <h3 class="section-subtitle"><i class="fas fa-truck"></i> Delivery Details</h3>
-                        <div class="detail-group">
-                            <div class="detail-label">Address:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['address']); ?></div>
-                        </div>
-                        <div class="detail-group">
-                            <div class="detail-label">City/State:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['city'] . ', ' . $order['state']); ?></div>
-                        </div>
-                        <div class="detail-group">
-                            <div class="detail-label">Landmark:</div>
-                            <div class="detail-value"><?php echo htmlspecialchars($order['landmark']); ?></div>
-                        </div>
-                        <div class="detail-group">
-                            <div class="detail-label">Delivery Time:</div>
-                            <div class="detail-value"><?php echo date('M j, Y g:i A', strtotime($order['delivery_time'])); ?></div>
-                        </div>
-                    </div>
-                    
-                    <div class="order-section">
-                        <h3 class="section-subtitle"><i class="fas fa-list"></i> Order Summary</h3>
-                        <ul class="items-list">
-                            <?php 
-                            $items = explode(', ', getOrderedItems($order['instructions']));
-                            foreach ($items as $item): 
-                                if (!empty(trim($item))): ?>
-                                    <li><?php echo htmlspecialchars(trim($item)); ?></li>
-                                <?php endif;
-                            endforeach; ?>
-                        </ul>
-                    </div>
-                    
-                    <div class="order-section">
-                        <h3 class="section-subtitle"><i class="fas fa-comment"></i> Special Instructions</h3>
-                        <div class="detail-value">
-                            <?php 
-                            $instructions = preg_replace('/Selected Items:.*/', '', $order['instructions']);
-                            echo !empty(trim($instructions)) ? nl2br(htmlspecialchars(trim($instructions))) : 'None'; 
-                            ?>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="order-actions">
-                    <div class="order-total">Total: <span>₹<?php echo number_format($order['total_amount'], 2); ?></span></div>
-                    <form method="post" class="update-form">
-                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                        <select name="status" required>
-                            <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                            <option value="preparing" <?php echo ($order['status'] == 'preparing') ? 'selected' : ''; ?>>Preparing</option>
-                            <option value="on the way" <?php echo ($order['status'] == 'on the way') ? 'selected' : ''; ?>>On the way</option>
-                            <option value="delivered" <?php echo ($order['status'] == 'delivered') ? 'selected' : ''; ?>>Delivered</option>
-                            <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                        </select>
-                        <button type="submit" name="update_status">Update Status</button>
-                    </form>
-                </div>
+        <?php if (empty($orders)): ?>
+            <div class="order-card" style="text-align: center; padding: 2rem;">
+                <p>No orders found.</p>
             </div>
-        <?php endforeach; ?>
+        <?php else: ?>
+            <?php foreach ($orders as $order): ?>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">Order #<?php echo $order['id']; ?></div>
+                            <div class="order-date"><?php echo date('M j, Y g:i A', strtotime($order['order_date'])); ?></div>
+                        </div>
+                        <div class="order-status status-<?php echo str_replace(' ', '-', strtolower($order['status'])); ?>">
+                            <?php echo ucfirst($order['status']); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="order-body">
+                        <div class="order-section">
+                            <h3 class="section-subtitle"><i class="fas fa-user"></i> Customer Details</h3>
+                            <div class="detail-group">
+                                <div class="detail-label">Name:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['name']); ?></div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Email:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['email']); ?></div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Phone:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['phone']); ?></div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-section">
+                            <h3 class="section-subtitle"><i class="fas fa-truck"></i> Delivery Details</h3>
+                            <div class="detail-group">
+                                <div class="detail-label">Address:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['address']); ?></div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">City/State:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['city'] . ', ' . $order['state']); ?></div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Landmark:</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($order['landmark']); ?></div>
+                            </div>
+                            <div class="detail-group">
+                                <div class="detail-label">Delivery Time:</div>
+                                <div class="detail-value"><?php echo date('M j, Y g:i A', strtotime($order['delivery_time'])); ?></div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-section">
+                            <h3 class="section-subtitle"><i class="fas fa-list"></i> Order Summary</h3>
+                            <ul class="items-list">
+                                <?php 
+                                $items = explode(', ', getOrderedItems($order['instructions']));
+                                foreach ($items as $item): 
+                                    if (!empty(trim($item))): ?>
+                                        <li><?php echo htmlspecialchars(trim($item)); ?></li>
+                                    <?php endif;
+                                endforeach; ?>
+                            </ul>
+                        </div>
+                        
+                        <div class="order-section">
+                            <h3 class="section-subtitle"><i class="fas fa-comment"></i> Special Instructions</h3>
+                            <div class="detail-value">
+                                <?php 
+                                $instructions = preg_replace('/Selected Items:.*/', '', $order['instructions']);
+                                echo !empty(trim($instructions)) ? nl2br(htmlspecialchars(trim($instructions))) : 'None'; 
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-actions">
+                        <div class="order-total">Total: <span>₹<?php echo number_format($order['total_amount'], 2); ?></span></div>
+                        <form method="post" class="update-form">
+                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                            <select name="status" required>
+                                <option value="pending" <?php echo ($order['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                <option value="preparing" <?php echo ($order['status'] == 'preparing') ? 'selected' : ''; ?>>Preparing</option>
+                                <option value="on the way" <?php echo ($order['status'] == 'on the way') ? 'selected' : ''; ?>>On the way</option>
+                                <option value="delivered" <?php echo ($order['status'] == 'delivered') ? 'selected' : ''; ?>>Delivered</option>
+                                <option value="cancelled" <?php echo ($order['status'] == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                            </select>
+                            <button type="submit" name="update_status">Update Status</button>
+                        </form>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </body>
 </html>

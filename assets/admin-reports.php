@@ -379,7 +379,7 @@ try {
                     <?php endforeach; ?>
                 ],
                 datasets: [{
-                    label: 'Daily Sales ($)',
+                    label: 'Daily Sales (₹)',
                     data: [
                         <?php foreach ($sales_data as $sale): ?>
                             <?php echo $sale['total_sales']; ?>,
@@ -409,7 +409,7 @@ try {
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                return '$' + value.toLocaleString();
+                                return '₹' + value.toLocaleString();
                             }
                         }
                     }
